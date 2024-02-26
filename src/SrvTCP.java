@@ -4,14 +4,16 @@ import java.util.Scanner;
 
 public class SrvTCP {
     public static void main(String[] args) throws IOException {
+        //Estableixem el servidor en el port 5000
         ServerSocket serverSocket = new ServerSocket(5000);
         System.out.println("Server is listening on port 5000");
 
         while (true) {
+            //Espera i acpeta les conexions dels clients
             Socket socket = serverSocket.accept();
             System.out.println("Nuevo cliente conectado");
 
-            // Lógica del Juego
+            //Inicialitzem les variables del joc
             char[][] tablero = new char[6][7];
             int jugador_actual = 1;
             boolean fin_juego = false;
@@ -20,27 +22,27 @@ public class SrvTCP {
             PrintWriter output = new PrintWriter(socket.getOutputStream(), true);
 
             while (!fin_juego) {
-                // Send the board state to the client
+                //Aqui envia l'estat actual del tauler al client
                 output.println("BOARD_STATE:" + boardToString(tablero));
                 output.println("CURRENT_PLAYER:" + jugador_actual);
 
-                // Get the player's move from the client
+                //Aqui obte el moviment del jugador apartir del client
                 String columnInput = input.readLine();
                 int columna = Integer.parseInt(columnInput) - 1;
 
-                // Place the player's piece on the board
+                //Aqui es coloca la ficha del jugador en el tauler
                 int fila = 5;
                 while (tablero[fila][columna] != '\u0000') {
                     fila--;
                     if (fila < 0) {
-                        //Si la columna esta plena li comuniquem al client(jugador)
+                        //Si la columna està plena li comuniquem al client(jugador)
                         output.println("INVALID_MOVE");
                         continue;
                     }
                 }
                 tablero[fila][columna] = (jugador_actual == 1) ? 'X' : 'O';
 
-                //Verificació de que el joc ha terminat
+                //Verificació de si hi ha un guanyador o si el tauler esta ple
                 if (checkWin(tablero, fila, columna)) {
                     output.println("GAME_RESULT:WIN," + jugador_actual);
                     fin_juego = true;
@@ -48,7 +50,7 @@ public class SrvTCP {
                     output.println("GAME_RESULT:DRAW");
                     fin_juego = true;
                 } else {
-                    // Switch to the next player
+                    //cambia al seguent jugador
                     jugador_actual = (jugador_actual == 1) ? 2 : 1;
                 }
             }
@@ -56,7 +58,7 @@ public class SrvTCP {
             socket.close();
         }
     }
-    //Metode per poder comprobar la victoria
+    //Metode per poder comprobar si hi ha un guanyador
     private static boolean checkWin(char[][] tablero, int fila, int columna) {
         char jugador = tablero[fila][columna];
         int consecutivas;
@@ -115,7 +117,7 @@ public class SrvTCP {
 
         return false;
     }
-
+    //Metode per a verificar si el tauler esta ple
     private static boolean tablero_lleno(char[][] tablero) {
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 7; j++) {
@@ -127,7 +129,7 @@ public class SrvTCP {
         return true;
     }
 
-
+    //Metode per a convertir el tauler en una cadena per a la seva visualització
     private static String boardToString(char[][] tablero) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 6; i++) {
